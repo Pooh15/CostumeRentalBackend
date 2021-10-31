@@ -20,10 +20,11 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-//this is going to be called for every single request
+//This is going to be called for every single request
 //HTTP request logger middleware for node.js
 app.use(morgan('tiny')); 
 
+//Need to encrypt the password
 app.post('/auth', function(request, response) {
 	var username = request.body.username;
 	var password = request.body.password;
@@ -32,7 +33,7 @@ app.post('/auth', function(request, response) {
 	if (username && password) {
 		dbConnection.query('SELECT * FROM user_details WHERE u_name = ? AND password = ?', 
 			[username, password], function(error, results, fields) {
-			if (error) {
+			if (error || results.length == 0) {
 				response.send('Incorrect Username and/or Password!');				
 			} else {
 				console.log(results);
