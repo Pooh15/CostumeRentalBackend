@@ -20,23 +20,35 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
+//this is going to be called for every single request
+//HTTP request logger middleware for node.js
+app.use(morgan('tiny')); 
 
-app.post('/testPost', (req, res) => {
-	console.log(req.body);
-	res.send('Home Page!');
-})
+app.post('/auth', function(request, response) {
+	var username = request.body.username;
+	var password = request.body.password;
+	console.log(request.body );
 
-app.get('/', function( req, res ){
-    res.send('Happy to be here');
+	if (username && password) {
+		dbConnection.query('SELECT * FROM user_details WHERE u_name = ? AND password = ?', 
+			[username, password], function(error, results, fields) {
+			if (error) {
+				response.send('Incorrect Username and/or Password!');				
+			} else {
+				console.log(results);
+				response.redirect('/home');
+			}			
+			response.end();
+		});
+	} else {
+		response.send('Please enter Username and Password!');
+		response.end();
+	}
 });
 
-
-// dbConnection.query(`select * from user_details`, (err, result,fields) => {
-// 	if(err){
-// 		return console.log(err);
-// 	}
-// 	return console.log(result);
-// })
+app.get('/home', function( req, res ){
+    res.send('Happy to be here');
+});
 
 const port = process.env.port || 5000;
 app.listen( port, function(){
