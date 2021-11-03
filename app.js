@@ -71,27 +71,47 @@ app.post('/auth', function(request, response) {
 	}
 });
 
-app.get('/getUserDetails', function(req, res){
-	let query=`SELECT item_name,count_inv from order_details natural join suborder_details natural join inventory where user_id=?`;
-	console.log(query);
-	res.send('Happy to be here');
-});
-
 app.post('/register', function(req, res){
-	let query = "SELECT * FROM rentdb.user_details WHERE u_name = ? and phone = ? LIMIT 1";
-	
+	let query = "SELECT * FROM user_details WHERE u_name = ? and phone = ? LIMIT 1";
+	let output={};
 	let registerObj = {
 		u_name : req.body.username,
-		password : req.body.password,
+		password : req.body.password? bcrypt.cryptPassword(req.body.password):req.body.password,
 		phone: req.body.phone,
 		email: req.body.email,
-		address: req.body.address
+		address: req.body.address,
+		role_id: 2
 	}
+	if(registerObj.u_name && registerObj.password && registerObj.phone &&
+		registerObj.email && registerObj.email){
+		console.log(registerObj);
+	dbConnection.query(query,[registerObj.u_name, registerObj.phone],(err,rows) => {
+		if(err) throw err;
+				//Data already exists
+				if(rows.length != 0){
+					output["status"]=0;
+					output["message"]="Username or Phone already exists!";
+					res.send(output);
+				} else {
+					let stmt = `INSERT INTO user_details SET ?`;
+					dbConnection.query(stmt, registerObj, (err, results, fields) => {
+						if (err) {
+							return console.error(err.message);
+						}
+						  // get inserted rows
+						  console.log('Row inserted:' + results.affectedRows);
+						  output["status"]=1;
+						  output["message"]="Registration Successful!";
+						  res.send(output);
+						});
+				}
+			});
 
-
-	console.log(query);
-
-	res.send(req.body);
+} else {
+	output["status"]=0;
+	output["message"]="Please enter Required fields!";
+	res.send(output);
+}
 });
 
 app.get('/home', function( req, res ){
