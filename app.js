@@ -71,8 +71,26 @@ app.post('/auth', function(request, response) {
 	}
 });
 
+app.get('/getUserDetails', function(req, res){
+	let query=`SELECT item_name,count_inv from order_details natural join suborder_details natural join inventory where user_id=?`;
+	console.log(query);
+	res.send('Happy to be here');
+});
+
 app.post('/register', function(req, res){
-	console.log(req.body);
+	let query = "SELECT * FROM rentdb.user_details WHERE u_name = ? and phone = ? LIMIT 1";
+	
+	let registerObj = {
+		u_name : req.body.username,
+		password : req.body.password,
+		phone: req.body.phone,
+		email: req.body.email,
+		address: req.body.address
+	}
+
+
+	console.log(query);
+
 	res.send(req.body);
 });
 
