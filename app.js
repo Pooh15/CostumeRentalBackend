@@ -85,7 +85,7 @@ app.post('/register', function(req, res){
 		role_id: 2
 	}
 	if(registerObj.u_name && registerObj.password && registerObj.phone &&
-		registerObj.email && registerObj.email){
+		registerObj.email && registerObj.email && registerObj.dob){
 		console.log(registerObj);
 	dbConnection.query(query,[registerObj.u_name, registerObj.phone],(err,rows) => {
 		if(err) throw err;
