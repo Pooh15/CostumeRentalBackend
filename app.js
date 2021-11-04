@@ -72,7 +72,8 @@ app.post('/auth', function(request, response) {
 });
 
 app.post('/register', function(req, res){
-	let query = "SELECT * FROM user_details WHERE u_name = ? and phone = ? LIMIT 1";
+	//let query = "SELECT * FROM user_details WHERE u_name = ? and phone = ? LIMIT 1";
+	let query = `SELECT * FROM rentdb.user_details WHERE u_name=? or (phone = ?)`;
 	let output={};
 	let registerObj = {
 		u_name : req.body.username,
@@ -93,6 +94,7 @@ app.post('/register', function(req, res){
 					output["message"]="Username or Phone already exists!";
 					res.send(output);
 				} else {
+					console.log(rows);
 					let stmt = `INSERT INTO user_details SET ?`;
 					dbConnection.query(stmt, registerObj, (err, results, fields) => {
 						if (err) {
