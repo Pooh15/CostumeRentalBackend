@@ -71,6 +71,54 @@ app.post('/auth', function(request, response) {
 	}
 });
 
+
+app.get('/getUserDetails', (req, res) =>{
+	let userid=req.query.userid;
+	let output={};
+	 
+    if (userid !=1) {
+    	dbConnection.query(`SELECT item_name,count_inv from order_details
+		natural join suborder_details natural join inventory where user_id=?`,req.query.userid,(err, result)=>{
+		
+			if(result.length != 0 ){
+
+        		if (err) throw err;
+
+        		res.send(result);
+			}else {
+				output["status"]=0;
+				output["message"]="Details does not exist.";
+				res.send(output);
+				}
+			
+
+		});
+	}
+
+});
+
+app.get('/getInventoryDetails', (req, res) =>{
+	let userid=req.query.userid;
+	let output={};
+    
+    dbConnection.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name from inventory 
+	NATURAL JOIN category natural join clothmaterial NATURAL JOIN pattern NATURAL JOIN color NATURAL JOIN size`,(err, result)=>{
+        
+		if(result.length != 0 ){
+			if (err) throw err;
+
+        	res.send(result);
+        	res.end();
+		}else {
+				output["status"]=0;
+				output["message"]="No Records Found!";
+				res.send(output);
+				}
+		
+	});
+});
+
+
 app.post('/register', function(req, res){
 	//let query = "SELECT * FROM user_details WHERE u_name = ? and phone = ? LIMIT 1";
 	let query = `SELECT * FROM rentdb.user_details WHERE u_name=? or (phone = ?)`;
@@ -117,7 +165,7 @@ app.post('/register', function(req, res){
 }
 });
 
-app.get('/home', function( req, res ){
+app.get('/xyz', function( req, res ){
 	let pass = bcrypt.cryptPassword('Prasanna');
 	console.log(bcrypt.comparePassword('Prasanna', 
 		pass))
