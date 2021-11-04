@@ -81,6 +81,7 @@ app.post('/register', function(req, res){
 		phone: req.body.phone,
 		email: req.body.email,
 		address: req.body.address,
+		dob: req.body.dob,
 		role_id: 2
 	}
 	if(registerObj.u_name && registerObj.password && registerObj.phone &&
