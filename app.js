@@ -22,6 +22,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
 	extended: true
 }));
+
+/**
+ * 3 strategies can be used
+ * single: Creates single database connection which is never closed.
+ * pool: Creates pool of connections. Connection is auto release when response ends.
+ * request: Creates new connection per new request. Connection is auto close when response ends.
+ */ 
 app.use(myConnection(mysql, dbOptions, 'pool'))
 
 //This is going to be called for every single request
@@ -30,13 +37,6 @@ app.use(morgan('tiny'));
 const auth = require('./routes/auth');
 const inventory = require('./routes/inventory');
 
-app.get('/xyz', function( req, res ){
-	let pass = bcrypt.cryptPassword('Prasanna');
-	console.log(bcrypt.comparePassword('Prasanna', 
-		pass))
-	console.log("--------")
-	res.send('Happy to be here');
-});
 
 app.use('/auth', auth);
 app.use('/inventory', inventory);
