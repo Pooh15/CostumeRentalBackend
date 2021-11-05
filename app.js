@@ -71,28 +71,79 @@ app.post('/auth', function(request, response) {
 	}
 });
 
+function updateProfile(userProfile, id, res){
+	
+	let output = {};
+	
+	dbConnection.query(`UPDATE user_details SET ? WHERE u_id = ${id}`, 
+		userProfile, function(err, result) {
+			if(err){
+				if(err) throw err;
+
+			} else{
+				output["status"]=1;
+				output["message"]="Record Update Successful";
+				res.send(output);
+			}
+		});
+}
+
+app.put('/editProfile/:id', (req, res, next) => {
+	let updateUserProfile = {};
+	let output = {};
+	if(req.body.password != '')
+		updateUserProfile.password = req.body.password? bcrypt.cryptPassword(req.body.password):req.body.password;
+	if(req.body.phone != '')
+		updateUserProfile.phone = req.body.phone;
+	if(req.body.email != '')
+		updateUserProfile.email = req.body.email;
+	if(req.body.address != '')
+		updateUserProfile.address = req.body.address;
+	
+	let passExistFlag = true;
+	if(JSON.stringify(updateUserProfile) !== '{}'){
+		if(updateUserProfile.phone != null || updateUserProfile.phone != undefined){
+			dbConnection.query(`SELECT * FROM user_details WHERE phone=?`,
+				updateUserProfile.phone, function(err, result) {
+					if(err)	if(err) throw err;
+					if(result.length != 0){
+						passExistFlag = false;
+						output["status"]=0;
+						output["message"]="Phone Number Already Exist!";
+						res.send(output);	
+					} else {
+						updateProfile(updateUserProfile, req.params.id, res);
+					}
+
+				})
+		} else {
+			updateProfile(updateUserProfile, req.params.id, res);
+		}		
+	} else {
+		output["status"]=0;
+		output["message"]="No Record is updated";
+		res.send(output);
+	} 
+});
 
 app.get('/getUserDetails', (req, res) =>{
 	let userid=req.query.userid;
 	let output={};
-	 
-    if (userid !=1) {
-    	dbConnection.query(`SELECT item_name,count_inv from order_details
-		natural join suborder_details natural join inventory where user_id=?`,req.query.userid,(err, result)=>{
-		
-			if(result.length != 0 ){
 
-        		if (err) throw err;
-
-        		res.send(result);
-			}else {
-				output["status"]=0;
-				output["message"]="Details does not exist.";
-				res.send(output);
+	if (userid !=1) {
+		dbConnection.query(`SELECT item_name,count_inv from order_details
+			natural join suborder_details natural join inventory where user_id=?`,
+			req.query.userid,(err, result)=>{
+				if (err) throw err;
+				if(result.length != 0){
+					res.send(result);
+				}else {
+					output["status"]=0;
+					output["message"]="Details does not exist.";
+					res.send(output);
 				}
-			
 
-		});
+			});
 	}
 
 });
@@ -100,28 +151,25 @@ app.get('/getUserDetails', (req, res) =>{
 app.get('/getInventoryDetails', (req, res) =>{
 	let userid=req.query.userid;
 	let output={};
-    
-    dbConnection.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name from inventory 
-	NATURAL JOIN category natural join clothmaterial NATURAL JOIN pattern NATURAL JOIN color NATURAL JOIN size`,(err, result)=>{
-        
-		if(result.length != 0 ){
-			if (err) throw err;
 
-        	res.send(result);
-        	res.end();
-		}else {
+	dbConnection.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name from inventory 
+		NATURAL JOIN category natural join clothmaterial NATURAL JOIN pattern NATURAL JOIN color NATURAL JOIN size`,(err, result)=>{
+			if (err) throw err;
+			if(result.length != 0 ){
+				res.send(result);
+			}else {
 				output["status"]=0;
 				output["message"]="No Records Found!";
 				res.send(output);
-				}
-		
-	});
+			}
+
+		});
 });
 
 
 app.post('/register', function(req, res){
 	//let query = "SELECT * FROM user_details WHERE u_name = ? and phone = ? LIMIT 1";
-	let query = `SELECT * FROM rentdb.user_details WHERE u_name=? or (phone = ?)`;
+	let query = `SELECT * FROM user_details WHERE u_name=? or (phone = ?)`;
 	let output={};
 	let registerObj = {
 		u_name : req.body.username,
