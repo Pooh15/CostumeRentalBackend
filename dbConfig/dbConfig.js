@@ -1,10 +1,15 @@
-const mysql = require('mysql');
+var config = {
+	database: {
+		host:	  'localhost', 	// database host
+		user: 	  'root', 		// your database username
+		password: '123456', 		// your database password
+		port: 	  3306, 		// default MySQL port
+		db: 	  'rentdb1' 		// your database name
+	},
+	server: {
+		host: '127.0.0.1',
+		port: '3000'
+	}
+}
 
-var connection = mysql.createConnection({
-	host:"localhost",
-	user: "root",
-	password: "123456",
-	database:"rentdb"
-})
-
-module.exports = connection;
+module.exports = config
