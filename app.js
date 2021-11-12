@@ -36,10 +36,11 @@ app.use(myConnection(mysql, dbOptions, 'pool'))
 app.use(morgan('tiny')); 
 const auth = require('./routes/auth');
 const inventory = require('./routes/inventory');
-
+const itemDependency = require('./routes/category');
 
 app.use('/auth', auth);
 app.use('/inventory', inventory);
+app.use('/category', itemDependency);
 
 const port = process.env.port || 5000;
 app.listen( port, function(){
