@@ -1,8 +1,36 @@
 let express = require('express');
-let app = express();
+let router = express.Router();
+let multer = require('multer');
 
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage, limits: {
+	fieldSize: 10 * 1024 * 1024
+}
+});
 
-app.post('/create', function(req, res){
+//router.post('/abc', upload.single('imageName'), function(req, res){
+router.route("/abc").post(upload.single("imageName"), (req, res) => {	
+	//console.log(Object.values(req.files)[0].data.toString('base64'));
+	console.log(Object.values(req.files)[0].name);
+	console.log(req.body);
+	/*upload.single('imageName')(req, res, function(err) {
+      if (err) {
+         // An error occurred when uploading
+         console.log('Err: ', err);
+         return;
+      } else {
+        // console.log('req.file: ', JSON.stringify(req.file));
+       // req.file.buffer.toString('base64')
+         console.log('req.files: ', req.files.);
+         return;
+      }
+  })*/
+  res.send({
+  	'hi': 'bye'
+  })
+});
+
+router.post('/create', function(req, res){
 	let query = `select * from category where c_name = ?`;
 	let output={};
 	let categoryName = req.body.categoryName;
@@ -14,7 +42,7 @@ app.post('/create', function(req, res){
 					output["status"]=0;
 					output["message"]="Category already exists!";
 					res.send(output);
-				} else {
+				} else {productImage
 					let stmt = `INSERT INTO category SET ?`;
 					conn.query(stmt, {c_name: categoryName}, (err, results, fields) => {
 						if (err) {
@@ -35,7 +63,7 @@ app.post('/create', function(req, res){
 	}
 });
 
-app.delete('/delete/:id', function(req, res){
+router.delete('/delete/:id', function(req, res){
 	let query=`DELETE FROM category WHERE c_id = ${req.params.id}`;
 	req.getConnection((error, conn) =>{
 		conn.query(query, (err, rows) => {
@@ -51,4 +79,4 @@ app.delete('/delete/:id', function(req, res){
 	
 })
 
-module.exports = app;	
+module.exports = router;	

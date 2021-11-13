@@ -5,12 +5,14 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const config = require('./dbConfig/dbConfig');
 const bcrypt = require('./encryptPassword.js');
-let myConnection  = require('express-myconnection')
+const myConnection  = require('express-myconnection')
+const cors = require('cors')
+const fileupload = require("express-fileupload");
 
 const app = express();
 
 
-var dbOptions = {
+const dbOptions = {
 	host:	  config.database.host,
 	user: 	  config.database.user,
 	password: config.database.password,
@@ -18,10 +20,12 @@ var dbOptions = {
 	database: config.database.db
 }
 
-app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
 	extended: true
 }));
+app.use(bodyParser.json());
+app.use(cors());
+app.use(fileupload());
 
 /**
  * 3 strategies can be used
