@@ -55,12 +55,19 @@ router.get('/getDetails', (req, res) =>{
 		let output={};
 
 		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-		image_name, rental_price, original_price, image 
-		from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-		pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price`,
+			image_name, rental_price, original_price, image 
+			from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+			pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price`,
 			(err, result)=>{
 				if (err) throw err;
 				if(result.length != 0 ){
+
+					for (let key in result) {
+						let value = result[key];
+
+						var buffer = Buffer.from(value.image, 'base64');
+						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+					}
 					res.send(result);
 				}else {
 					output["status"]=0;
