@@ -13,41 +13,46 @@ app.post('/login', function(request, response) {
 		const query="SELECT password from user_details where u_name=?";
 		if (username && password) {
 			conn.query(query,username,(err,rows) => {
-				if(err) throw err;
+				if(err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
 
 				if(rows.length != 0){
 					let password_hash = rows[0]["password"];
 					let verified = bcrypt.comparePassword(password, password_hash);
-					console.log(verified);
+					
 					if(verified){
 						output["status"]=1;
-						conn.query('SELECT * FROM user_details WHERE u_name = ?', 
+						conn.query(`SELECT address, dob, email,phone, u_name, role_name
+							FROM user_details natural join role WHERE u_name = ?`, 
 							username, function(error, results, fields) {
 								if (error || results.length == 0) {
-									console.log(results);
-									response.send('Incorrect Username!');				
+									response.status(400).send('Incorrect Username!');				
 								} else {
-									console.log(results);
-									response.send(results);
+									response.status(200).send(results);
 								}			
 								response.end();
 							});
 					} else {
-						output["status"]=0;
 						output["message"]="Invalid password";
-						response.send(output);
+						response.status(400).send(output);
 					}
 				} else {
-					output["status"]=0;
-					output["message"]="Invalid username and password";
-					response.send(output);
+					output["message"]="Invalid username or password";
+					response.status(400).send(output);
 				}
 			});
 		} else {
-			output["status"]=0;
-			output["message"]="Please enter Username and Password!";
+			if (!Object.keys(request.body).includes('username') || 
+				!Object.keys(request.body).includes('password')){
+				output["message"]="Invalid input!";
+				response.status(400).send(output);
 
-			response.send(output);
+			} else {
+				output["message"]="Please enter Username and Password!";
+				response.status(400).send(output);
+			}
 		}
 	});
 
