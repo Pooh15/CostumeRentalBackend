@@ -30,31 +30,28 @@ app.post('/login', function(request, response) {
 								if (error || results.length == 0) {
 									response.status(400).send('Incorrect Username!');				
 								} else {
+									console.log(results[0])
 									response.status(200).send(results);
 								}			
 								response.end();
 							});
 					} else {
-						output["message"]="Invalid password";
-						response.status(400).send(output);
+						response.status(400).send('Invalid password');
 					}
 				} else {
-					output["message"]="Invalid username or password";
-					response.status(400).send(output);
+					response.status(400).send('Invalid username or password');
 				}
 			});
 		} else {
 			if (!Object.keys(request.body).includes('username') || 
 				!Object.keys(request.body).includes('password')){
-				output["message"]="Invalid input!";
-				response.status(400).send(output);
+				response.status(400).send('Invalid input!');
 
-			} else {
-				output["message"]="Please enter Username and Password!";
-				response.status(400).send(output);
-			}
+		} else {
+			response.status(400).send('Please enter Username and Password!');
 		}
-	});
+	}
+});
 
 });
 
@@ -135,27 +132,26 @@ app.post('/register', function(req, res){
 	req.getConnection((error, conn) =>{
 
 		conn.query(query,[registerObj.u_name, registerObj.phone],(err,rows) => {
-			if(err) throw err;
-			//Data already exists
-			if(rows.length != 0){
-				output["status"]=0;
-				output["message"]="Username or Phone already exists!";
-				res.send(output);
-			} else {
-				console.log(rows);
-				let stmt = `INSERT INTO user_details SET ?`;
-				conn.query(stmt, registerObj, (err, results, fields) => {
-					if (err) {
-						return console.error(err.message);
-					}
-					  // get inserted rows
-					  console.log('Row inserted:' + results.affectedRows);
-					  output["status"]=1;
-					  output["message"]="Registration Successful!";
-					  res.send(output);
-					});
+			if(err){
+				console.log("---"+ err);
+				response.status(500).send(err);
 			}
-		});
+		//Data already exists
+		if(rows.length != 0){
+			res.status(400).send('Username or Phone already exists!');
+		} else {
+			console.log(rows);
+			let stmt = `INSERT INTO user_details SET ?`;
+			conn.query(stmt, registerObj, (err, results, fields) => {
+				if (err) {
+					return console.error(err.message);
+				}
+			  // get inserted rows
+			  console.log('Row inserted:' + results.affectedRows);
+			  res.status(200).send('Registration Successful!');
+			});
+		}
+	});
 	})
 
 
