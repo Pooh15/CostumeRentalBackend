@@ -18,7 +18,7 @@ app.post('/login', function(request, response) {
 					response.status(500).send(err);
 				};
 
-				if(rows.length != 0){
+				if(rows.length != 0){	
 					let password_hash = rows[0]["password"];
 					let verified = bcrypt.comparePassword(password, password_hash);
 					
@@ -166,14 +166,14 @@ app.post('/register', function(req, res){
 }
 });
 
-app.get('/getUserDetails', (req, res) =>{
-	let userid=req.query.userid;
+app.get('/getUserDetails/:userid', (req, res) =>{
 	let output={};
 	req.getConnection((error, conn) =>{
-		if (userid !=1) {
-			conn.query(`SELECT item_name,count_inv from order_details
-				natural join suborder_details natural join inventory where user_id=?`,
-				req.query.userid,(err, result)=>{
+		if (req.params.userid !=1) {
+			conn.query(`select u_name,item_id,item_name,order_count,return_count,phone,address from order_details NATURAL JOIN 
+				suborder_details NATURAL JOIN inventory NATURAL JOIN user_details
+				where user_id=${req.params.userid}`,
+				req.params.userid,(err, result)=>{
 					if (err) throw err;
 					if(result.length != 0){
 						res.send(result);
