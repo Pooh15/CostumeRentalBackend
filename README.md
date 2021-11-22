@@ -6,6 +6,7 @@ To run on local system follow the steps below
 --> alter user 'root'@'localhost' identified with mysql_native_password by 'password'
 This will set up connection with nodejs. 
 And make connection in dbconfig file like below
+
 var config = {
 	database: {
 		host:	  'localhost', 	// database host
