@@ -48,18 +48,21 @@ router.post('/addItem', function(req, res){
 		res.send(output);
 	}
 
-});
+});		
 
 router.get('/getDetails', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 
-		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-			image_name, rental_price, original_price, image 
-			from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-			pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price`,
+			conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
+					rental_price, original_price,count_inv,image  
+					from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price where count_inv <> '0'`,
 			(err, result)=>{
-				if (err) throw err;
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
 				if(result.length != 0 ){
 
 					for (let key in result) {
@@ -68,15 +71,96 @@ router.get('/getDetails', (req, res) =>{
 						var buffer = Buffer.from(value.image, 'base64');
 						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
 					}
-					res.send(result);
+
+				conn.query(`select item_name,rental_price,laundry_count,DATE_ADD(laundry_in_date, INTERVAL 2 DAY) as item_available_On,image from 
+				laundry natural join inventory natural join rental_price NATURAL join image where count_inv='0' and laundry_out_date is NULL`,
+				(err, result1)=>{
+
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+
+				if(result1.length != 0 ){
+
+					for (let key in result1) {
+						let value = result1[key];
+
+						var buffer = Buffer.from(value.image, 'base64');
+						result1[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();						
+						console.log("Item is under laundry");
+						var inlaundry = true;	
+					}
+
+				conn.query(`select item_id,order_count from suborder_details NATURAL JOIN inventory`,
+				(err, result2)=>{
+
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+
+				if(result2.length != 0 ){
+
+							res.status(200).send({result,result1,result2});
+				
 				}else {
 					output["status"]=0;
 					output["message"]="No Records Found!";
-					res.send(output);
-				}
-
+					res.status(400).send(output);
+				} 
 			});
+		}
+				else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				} 
+		});
+	}
+
+				else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				} 
+
 	});
 });
+});
+
+/*router.get('/getLaundryDetails', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+
+				conn.query(`select item_name,rental_price,laundry_count,DATE_ADD(laundry_in_date, INTERVAL 2 DAY) as item_available_On,image from 
+				laundry natural join inventory natural join rental_price NATURAL join image where count_inv='0' and laundry_out_date is NULL`,
+				(err, result)=>{
+
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+
+				if(result.length != 0 ){
+
+					for (let key in result) {
+						let value = result[key];
+
+						var buffer = Buffer.from(value.image, 'base64');
+						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();						
+						console.log("Item is under laundry");
+						var inlaundry = true;
+					}
+							res.status(200).send(result);	
+				}else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				}
+			});
+		
+	});
+});*/
 
 module.exports = router;	

@@ -56,10 +56,15 @@ router.get('/getCategoryDetails/:category_id', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 		if (req.params.category_id !=0) {
-		conn.query(`select item_name,image,rental_price from category natural join inventory 
-			natural join image natural join rental_price where c_id=${req.params.category_id}`,
+		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
+					rental_price, original_price,count_inv,image  
+					from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price where count_inv <> '0' and c_id=${req.params.category_id}`,
 			(err, result)=>{
-				if (err) throw err;
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
 				if(result.length != 0 ){
 
 					for (let key in result) {
@@ -68,11 +73,83 @@ router.get('/getCategoryDetails/:category_id', (req, res) =>{
 						var buffer = Buffer.from(value.image, 'base64');
 						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
 					}
-					res.send(result);
+					res.status(200).send(result);
 				}else {
 					output["status"]=0;
 					output["message"]="No Records Found!";
-					res.send(output);
+					res.status(400).send(output);
+				}		
+			});
+		}
+	});
+});
+
+router.get('/getCategory', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+		
+		conn.query(`select * from category`,
+			(err, result)=>{
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+					res.status(200).send(result);
+				}else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				}		
+			});
+	});
+});
+
+router.get('/getPattern', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+		
+		conn.query(`select * from pattern`,
+			(err, result)=>{
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+					res.status(200).send(result);
+				}else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				}		
+			});
+	});
+});
+
+router.get('/getPatternDetails/:pattern_id', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+		if (req.params.pattern_id !=0) {
+		conn.query(`select item_name,image,rental_price,c_name from category natural join inventory 
+			natural join image natural join rental_price natural join pattern where p_id=${req.params.pattern_id}`,
+			(err, result)=>{
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+
+					for (let key in result) {
+						let value = result[key];
+
+						var buffer = Buffer.from(value.image, 'base64');
+						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+					}
+					res.status(200).send(result);
+				}else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
 				}		
 			});
 		}
@@ -80,14 +157,19 @@ router.get('/getCategoryDetails/:category_id', (req, res) =>{
 });
 
 
-router.get('/getPatternDetails/:pattern_id', (req, res) =>{
+
+
+router.get('/getClothDetails/:clothmaterial_id', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
-		if (req.params.pattern_id !=0) {
-		conn.query(`select item_name,image,rental_price from category natural join inventory 
-			natural join image natural join rental_price natural join pattern where p_id=${req.params.pattern_id}`,
+		if (req.params.clothmaterial_id !=0) {
+		conn.query(`select item_name,image,rental_price from inventory 
+			natural join image natural join rental_price natural join clothmaterial where cloth_id=${req.params.clothmaterial_id}`,
 			(err, result)=>{
-				if (err) throw err;
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
 				if(result.length != 0 ){
 
 					for (let key in result) {
@@ -96,11 +178,42 @@ router.get('/getPatternDetails/:pattern_id', (req, res) =>{
 						var buffer = Buffer.from(value.image, 'base64');
 						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
 					}
-					res.send(result);
+					res.status(200).send(result);
 				}else {
 					output["status"]=0;
 					output["message"]="No Records Found!";
-					res.send(output);
+					res.status(400).send(output);
+				}		
+			});
+		}
+	});
+});
+
+
+router.get('/getColorDetails/:c_id', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+		if (req.params.c_id !=0) {
+		conn.query(`select item_name,image,rental_price from inventory 
+			natural join image natural join rental_price natural join color where color_id=${req.params.c_id}`,
+			(err, result)=>{
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+
+					for (let key in result) {
+						let value = result[key];
+
+						var buffer = Buffer.from(value.image, 'base64');
+						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+					}
+					res.status(200).send(result);
+				}else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
 				}		
 			});
 		}
