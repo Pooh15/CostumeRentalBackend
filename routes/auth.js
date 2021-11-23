@@ -127,14 +127,14 @@ app.post('/register', function(req, res){
 	}
 	console.log(registerObj);
 	if(registerObj.u_name && registerObj.password && registerObj.phone &&
-		registerObj.email && registerObj.email && registerObj.dob){
+		registerObj.email && registerObj.email && registerObj.dob && registerObj.address){
 		console.log(registerObj);
 	req.getConnection((error, conn) =>{
 
 		conn.query(query,[registerObj.u_name, registerObj.phone],(err,rows) => {
 			if(err){
 				console.log("---"+ err);
-				response.status(500).send(err);
+				res.status(500).send(err);
 			}
 		//Data already exists
 		if(rows.length != 0){
@@ -144,21 +144,18 @@ app.post('/register', function(req, res){
 			let stmt = `INSERT INTO user_details SET ?`;
 			conn.query(stmt, registerObj, (err, results, fields) => {
 				if (err) {
-					return console.error(err.message);
+					res.status(400).send(err);
+				} else {
+					console.log('Row inserted:' + results.affectedRows);
+					output["message"]="Registration Successful!";
+					res.status(200).send(output);
 				}
-			  // get inserted rows
-			  console.log('Row inserted:' + results.affectedRows);
-			  res.status(200).send('Registration Successful!');
 			});
 		}
 	});
 	})
-
-
 } else {
-	output["status"]=0;
-	output["message"]="Please enter Required fields!";
-	res.send(output);
+	res.status(400).send('Please enter Required fields!');
 }
 });
 
