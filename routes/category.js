@@ -53,13 +53,14 @@ router.delete('/delete/:id', function(req, res){
 module.exports = router;	
 
 router.get('/getCategoryDetails/:category_id', (req, res) =>{
+	console.log(req.params.category_id);
 	req.getConnection((error, conn) =>{
 		let output={};
 		if (req.params.category_id !=0) {
 		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-					rental_price, original_price,count_inv,image  
+					rental_price, original_price,count_inv 
 					from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price where count_inv <> '0' and c_id=${req.params.category_id}`,
+					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price where c_id in (${req.params.category_id})`,
 			(err, result)=>{
 				if (err) {
 					console.log("---"+ err);
@@ -67,12 +68,12 @@ router.get('/getCategoryDetails/:category_id', (req, res) =>{
 				};
 				if(result.length != 0 ){
 
-					for (let key in result) {
+					/*for (let key in result) {
 						let value = result[key];
 
 						var buffer = Buffer.from(value.image, 'base64');
 						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
-					}
+					}*/
 					res.status(200).send(result);
 				}else {
 					output["status"]=0;
@@ -110,6 +111,70 @@ router.get('/getPattern', (req, res) =>{
 		let output={};
 		
 		conn.query(`select * from pattern`,
+			(err, result)=>{
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+					res.status(200).send(result);
+				}else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				}		
+			});
+	});
+});
+
+router.get('/getColor', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+		
+		conn.query(`select * from color`,
+			(err, result)=>{
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+					res.status(200).send(result);
+				}else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				}		
+			});
+	});
+});
+
+
+router.get('/getSize', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+		
+		conn.query(`select * from size`,
+			(err, result)=>{
+				if (err) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+					res.status(200).send(result);
+				}else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				}		
+			});
+	});
+});
+
+router.get('/getCloth', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+		
+		conn.query(`select * from clothmaterial`,
 			(err, result)=>{
 				if (err) {
 					console.log("---"+ err);

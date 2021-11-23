@@ -129,6 +129,39 @@ router.get('/getDetails', (req, res) =>{
 });
 });
 
+router.get('/getLaundryDetails', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+
+		let sql=`call get_laundry_details()`;
+			conn.query(sql,true,(error, result, fields) => {
+				if (error) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+
+					for (let key in result) {
+						let value = result[key];
+
+						var buffer = Buffer.from(JSON.stringify(	.image));
+						result[key].image = `data:image/png;base64,`+Buffer.from(JSON.stringify(value.image));					
+					}
+
+						res.status(200).send(result);
+				}
+				else {
+					output["status"]=0;
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				} 
+
+	});
+});
+});
+
+
+
 /*router.get('/getLaundryDetails', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
