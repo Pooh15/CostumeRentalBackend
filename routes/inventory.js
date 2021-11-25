@@ -65,7 +65,7 @@ req.getConnection((error, conn) =>{
 		image_name, rental_price, original_price, Laundry_count ,laundry_in_date, image 
 		from inventory i NATURAL JOIN category natural join clothmaterial NATURAL JOIN
 		pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price
-		left join rentdb1.laundry l on l.item_id = i.item_id 
+		left join laundry l on l.item_id = i.item_id 
 		where l.laundry_out_date is null
 		`,
 		(err, result)=>{
@@ -78,7 +78,7 @@ req.getConnection((error, conn) =>{
 					var buffer = Buffer.from(value.image, 'base64');
 					result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
 				}
-				let orderQuery = `select item_id, rent_date, order_count from rentdb1.order_details natural join rentdb1.suborder_details
+				let orderQuery = `select item_id, rent_date, order_count from order_details natural join suborder_details
 				where return_date is null`;
 				conn.query(orderQuery, function(error, results, fields) {
 					if (error) {
@@ -139,6 +139,39 @@ router.get('/getLaundryDetails', (req, res) =>{
 				}
 
 				res.status(200).send(result);
+			}
+			else {
+				output["status"]=0;
+				output["message"]="No Records Found!";
+				res.status(400).send(output);
+			} 
+
+		});
+	});
+});
+
+
+router.get('/getLaundryDetails', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+
+		let sql=`call get_laundry_details()`;
+			conn.query(sql,true,(error, result, fields) => {
+				if (error) {
+					console.log("---"+ err);
+					response.status(500).send(err);
+				};
+				if(result.length != 0 ){
+
+					for (let key in result) {
+						let value = result[key];
+
+						var buffer = Buffer.from(JSON.stringify(value.image));
+						result[key].image = `data:image/png;base64,`+Buffer.from(JSON.stringify(value.image));					
+					}
+
+						res.status(200).send(result);
+
 			}
 			else {
 				output["status"]=0;
