@@ -64,13 +64,17 @@ req.getConnection((error, conn) =>{
 	conn.query(`select i.item_id,item_name,c_name,material_name,p_name,color,s_name,
 		image_name, rental_price, original_price, Laundry_count ,laundry_in_date, image 
 		from inventory i NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-		pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image NATURAL JOIN rental_price
+		pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image
 		left join laundry l on l.item_id = i.item_id 
 		where l.laundry_out_date is null
 		`,
 		(err, result)=>{
-			if (err) res.status(500).send(err);
-			if(result.length != 0 ){
+			if (err) {
+				res.status(500).send(err);
+			}
+
+			if(result.length != 0 )
+			{
 
 				for (let key in result) {
 					let value = result[key];
@@ -115,6 +119,37 @@ req.getConnection((error, conn) =>{
 				output["message"]="No Records Found!";
 				res.status(400).send(output);
 			}
+		});
+	});
+});
+
+router.get('/getLaundryDetails', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+
+		let sql=`call get_laundry_details()`;
+		conn.query(sql,true,(error, result, fields) => {
+			if (error) {
+				console.log("---"+ err);
+				response.status(500).send(err);
+			};
+			if(result.length != 0 ){
+
+				for (let key in result) {
+					let value = result[key];
+
+					var buffer = Buffer.from(JSON.stringify(value.image));
+					result[key].image = `data:image/png;base64,`+Buffer.from(JSON.stringify(value.image));					
+				}
+
+				res.status(200).send(result);
+			}
+			else {
+				output["status"]=0;
+				output["message"]="No Records Found!";
+				res.status(400).send(output);
+			} 
+
 		});
 	});
 });
