@@ -62,7 +62,8 @@ req.getConnection((error, conn) =>{
 		let output={};
 
 	conn.query(`select i.item_id,item_name,c_name,material_name,p_name,color,s_name,
-		image_name, rental_price, original_price, Laundry_count ,laundry_in_date, image 
+		image_name, rental_price, original_price, Laundry_count ,laundry_in_date, 
+		advance_amount, image 
 		from inventory i NATURAL JOIN category natural join clothmaterial NATURAL JOIN
 		pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image
 		left join laundry l on l.item_id = i.item_id 
