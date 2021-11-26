@@ -10,16 +10,19 @@ const upload = multer({ storage: storage, limits: {
 
 router.post('/addItem', function(req, res){
 	let output={};
-	console.log(req.body);
+	let obj = JSON.parse(req.body.inventoryObj);
 
-	if(req.body.fname != '' && req.body.lname != ''){
+	if(obj.c_id && obj.p_id &&
+		obj.cloth_id && obj.color_id &&
+		obj.s_id && obj.item_name &&
+		obj.original_price != 0){
 
 		req.getConnection((error, conn) =>{
 			upload.single('imageName')(req, res, function(err) {
 				if (err) {
 		 // An error occurred when uploading
 		 console.log('Err: ', err);
-		 return;
+		 return res.status(500).send(err);
 		} else {
 			let imgName = Object.values(req.files)[0].name.split('.');
 			imgName = imgName[0].split(' ').join('')+'-'+Date.now();
@@ -30,22 +33,21 @@ router.post('/addItem', function(req, res){
 			let query = `INSERT INTO image SET ?`;
 			conn.query(query, {image_name: imgName, image: imageBlob}, (err, results, fields) => {
 				if (err) {
-					return console.error(err.message);
+					console.error(err.message);
+					return res.status(500).send(err);
 				}
-				console.log('Row inserted:' + results.affectedRows);
+				console.log('Row inserted:' + results.insertId);
 				output["status"]=1;
 				output["message"]="Image added Successfully!";
-				res.send(output);
+				res.status(200).send(output);
 			});
 			
-
-
 		} })
 		});
 	} else {
 		output["status"]=0;
 		output["message"]="Please enter All fields";
-		res.send(output);
+		res.status(400).send(output);
 	}
 
 });		
