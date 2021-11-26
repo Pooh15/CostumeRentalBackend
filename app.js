@@ -41,10 +41,12 @@ app.use(morgan('tiny'));
 const auth = require('./routes/auth');
 const inventory = require('./routes/inventory');
 const itemDependency = require('./routes/category');
+const userActions = require('./routes/user');
 
 app.use('/auth', auth);
 app.use('/inventory', inventory);
 app.use('/category', itemDependency);
+app.use('/user', userActions);
 
 const port = process.env.port || 5000;
 app.listen( port, function(){

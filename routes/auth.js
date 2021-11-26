@@ -24,7 +24,7 @@ app.post('/login', function(request, response) {
 					
 					if(verified){
 						output["status"]=1;
-						conn.query(`SELECT address, dob, email,phone, u_name, role_name
+						conn.query(`SELECT address, dob, email,phone, u_name, role_name, user_id
 							FROM user_details natural join role WHERE u_name = ?`, 
 							username, function(error, results, fields) {
 								if (error || results.length == 0) {
