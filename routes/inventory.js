@@ -58,7 +58,6 @@ router.post('/addItem', function(req, res){
 
 						output["message"]="Image added Successfully!";
 						res.status(200).send(output);
-						conn.release();
 					})
 				})
 				
