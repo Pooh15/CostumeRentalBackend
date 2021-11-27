@@ -31,6 +31,73 @@ router.post('/create', function(req, res){
 	}
 });
 
+
+router.post('/createCloth', function(req, res){
+	let query = `select * from clothmaterial where material_name = ?`;
+	let output={};
+	let clothName = req.body.clothName;
+	console.log(req.body)
+	if(clothName){
+		req.getConnection((error, conn) =>{
+			conn.query(query, clothName,(err,rows) => {
+				if(err) { return res.status(500).send(err); }
+				if(rows.length != 0){
+					output["message"]="Clothmaterial already exists!";
+					return res.status(400).send(output);
+				} else {
+					let stmt = `INSERT INTO clothmaterial SET ?`;
+					conn.query(stmt, {material_name: clothName}, (err, results, fields) => {
+						if (err) {
+							return console.error(err.message);
+						}
+						output["message"]="Clothmaterial added Successfully!";
+						return res.status(200).send(output);
+					});
+				}
+			});
+		});
+	} else {
+		output["message"]="Please enter material name";
+		return res.status(400).send(output);
+	}
+});
+
+
+router.post('/createPattern', function(req, res){
+	let query = `select * from pattern where p_name = ? and (c_id = ?)`;
+	let output={};
+	let addpattern =
+	{
+		p_name: req.body.patternName,
+		c_id: req.body.categoryId
+	}
+	console.log(req.body)
+	if(addpattern){
+		req.getConnection((error, conn) =>{
+			conn.query(query,[addpattern.p_name,addpattern.c_id],(err,rows) => {
+				if(err) { return res.status(500).send(err); }
+				if(rows.length != 0){
+					output["message"]="Pattern already exists!";
+					return res.status(400).send(output);
+				} else {
+					let stmt = `INSERT INTO pattern SET ?`;
+					conn.query(stmt,addpattern, (err, results, fields) => {
+						if (err) {
+							return console.error(err.message);
+						}
+						output["message"]="Pattern added Successfully!";
+						return res.status(200).send(output);
+					});
+				}
+			});
+		});
+	} else {
+		output["message"]="Please enter pattern name or category name";
+		return res.status(400).send(output);
+	}
+});
+
+
 router.delete('/delete/:id', function(req, res){
 	let query=`DELETE FROM category WHERE c_id = ${req.params.id}`;
 	req.getConnection((error, conn) =>{
