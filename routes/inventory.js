@@ -15,43 +15,62 @@ router.post('/addItem', function(req, res){
 	if(obj.c_id && obj.p_id &&
 		obj.cloth_id && obj.color_id &&
 		obj.s_id && obj.item_name &&
-		obj.original_price != 0){
+		obj.original_price != 0 && obj.count_inv){
 
 		req.getConnection((error, conn) =>{
 			upload.single('imageName')(req, res, function(err) {
-				if (err) {
-		 // An error occurred when uploading
-		 console.log('Err: ', err);
-		 return res.status(500).send(err);
-		} else {
-			let imgName = Object.values(req.files)[0].name.split('.');
-			imgName = imgName[0].split(' ').join('')+'-'+Date.now();
-			let imageBlob = Object.values(req.files)[0].data.toString('base64');
 
-			console.log(imgName);
-			console.log(Object.values(req.files)[0])
-			let query = `INSERT INTO image SET ?`;
-			conn.query(query, {image_name: imgName, image: imageBlob}, (err, results, fields) => {
 				if (err) {
-					console.error(err.message);
-					return res.status(500).send(err);
-				}
-				console.log('Row inserted:' + results.insertId);
-				output["status"]=1;
-				output["message"]="Image added Successfully!";
-				res.status(200).send(output);
+			 // An error occurred when uploading
+			 console.log('Err: ', err);
+			 return res.status(500).send(err);
+			} else {
+				conn.beginTransaction();
+				let imgName = Object.values(req.files)[0].name.split('.');
+				imgName = imgName[0].split(' ').join('')+'-'+Date.now();
+				let imageBlob = Object.values(req.files)[0].data.toString('base64');
+
+				let query = `INSERT INTO image SET ?`;
+				conn.query(query, {image_name: imgName, image: imageBlob}, 
+					(err, results, fields) => {
+						if (err) {
+							conn.rollback(function() {
+								return res.status(500).send(err);
+							});
+						}
+				console.log('Row inserted:' + results.insertId); //image insert success
+				obj.image_id = results.insertId;
+				conn.query(`INSERT into inventory SET ?`, obj, (error, result) =>{
+					if (error) {
+						console.log('Rolling back from inventory')
+						return conn.rollback(function() {
+							return res.status(500).send(err);
+						});
+					}
+					conn.commit((err) =>{
+						if(err){
+							console.log('Overall rollback')
+							return conn.rollback(function() {
+								return res.status(500).send(err);
+							});
+						}
+						console.log('Success!');
+
+						output["message"]="Image added Successfully!";
+						res.status(200).send(output);
+						conn.release();
+					})
+				})
+				
 			});
-			
-		} })
+			} })
 		});
-	} else {
-		output["status"]=0;
-		output["message"]="Please enter All fields";
-		res.status(400).send(output);
-	}
+} else {
+	output["message"]="Please enter All fields";
+	res.status(400).send(output);
+}
 
-});		
-
+});
 
 function calculateDate(newDate, daysToBeAdded){
 	let someDate = new Date(newDate);
@@ -60,41 +79,41 @@ function calculateDate(newDate, daysToBeAdded){
 }
 
 router.get('/getDetails', (req, res) =>{
-req.getConnection((error, conn) =>{
+	req.getConnection((error, conn) =>{
 		let output={};
 
-	conn.query(`select i.item_id,item_name,c_name,material_name,p_name,color,s_name,
-		image_name, rental_price, original_price, Laundry_count ,laundry_in_date, 
-		advance_amount, image 
-		from inventory i NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-		pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image
-		left join laundry l on l.item_id = i.item_id 
-		where l.laundry_out_date is null
-		`,
-		(err, result)=>{
-			if (err) {
-				res.status(500).send(err);
-			}
-
-			if(result.length != 0 )
-			{
-
-				for (let key in result) {
-					let value = result[key];
-
-					var buffer = Buffer.from(value.image, 'base64');
-					result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+		conn.query(`select i.item_id,item_name,c_name,material_name,p_name,color,s_name,
+			image_name, rental_price, original_price, Laundry_count ,laundry_in_date, 
+			advance_amount, image 
+			from inventory i NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+			pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image
+			left join laundry l on l.item_id = i.item_id 
+			where l.laundry_out_date is null
+			`,
+			(err, result)=>{
+				if (err) {
+					res.status(500).send(err);
 				}
-				let orderQuery = `select item_id, rent_date, order_count from order_details natural join suborder_details
-				where return_date is null`;
-				conn.query(orderQuery, function(error, results, fields) {
-					if (error) {
-						if (error) res.status(500).send(error);				
-					} 
-					if(results.length != 0){
-						let result1 = Object.values(JSON.parse(JSON.stringify(result)));
-						const results1 = Object.values(JSON.parse(JSON.stringify(results)));
-						
+
+				if(result.length != 0 )
+				{
+
+					for (let key in result) {
+						let value = result[key];
+
+						var buffer = Buffer.from(value.image, 'base64');
+						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+					}
+					let orderQuery = `select item_id, rent_date, order_count from order_details natural join suborder_details
+					where return_date is null`;
+					conn.query(orderQuery, function(error, results, fields) {
+						if (error) {
+							if (error) res.status(500).send(error);				
+						} 
+						if(results.length != 0){
+							let result1 = Object.values(JSON.parse(JSON.stringify(result)));
+							const results1 = Object.values(JSON.parse(JSON.stringify(results)));
+
 						//add order_count to the items in inventory that matches with
 						//items in order
 						result1.forEach((element, index) => {
@@ -118,11 +137,11 @@ req.getConnection((error, conn) =>{
 					}	
 				});
 
-			} else {
-				output["message"]="No Records Found!";
-				res.status(400).send(output);
-			}
-		});
+				} else {
+					output["message"]="No Records Found!";
+					res.status(400).send(output);
+				}
+			});
 	});
 });
 
@@ -194,21 +213,21 @@ router.get('/getLaundryDetails', (req, res) =>{
 		let output={};
 
 		let sql=`call get_laundry_details()`;
-			conn.query(sql,true,(error, result, fields) => {
-				if (error) {
-					console.log("---"+ err);
-					response.status(500).send(err);
-				};
-				if(result.length != 0 ){
+		conn.query(sql,true,(error, result, fields) => {
+			if (error) {
+				console.log("---"+ err);
+				response.status(500).send(err);
+			};
+			if(result.length != 0 ){
 
-					for (let key in result) {
-						let value = result[key];
+				for (let key in result) {
+					let value = result[key];
 
-						var buffer = Buffer.from(JSON.stringify(value.image));
-						result[key].image = `data:image/png;base64,`+Buffer.from(JSON.stringify(value.image));					
-					}
+					var buffer = Buffer.from(JSON.stringify(value.image));
+					result[key].image = `data:image/png;base64,`+Buffer.from(JSON.stringify(value.image));					
+				}
 
-						res.status(200).send(result);
+				res.status(200).send(result);
 
 			}
 			else {
