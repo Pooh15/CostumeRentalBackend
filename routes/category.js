@@ -5,32 +5,29 @@ router.post('/create', function(req, res){
 	let query = `select * from category where c_name = ?`;
 	let output={};
 	let categoryName = req.body.categoryName;
+	console.log(req.body)
 	if(categoryName){
 		req.getConnection((error, conn) =>{
 			conn.query(query, categoryName,(err,rows) => {
-				if(err) throw err;
+				if(err) { return res.status(500).send(err); }
 				if(rows.length != 0){
-					output["status"]=0;
 					output["message"]="Category already exists!";
-					res.send(output);
-				} else {productImage
+					return res.status(400).send(output);
+				} else {
 					let stmt = `INSERT INTO category SET ?`;
 					conn.query(stmt, {c_name: categoryName}, (err, results, fields) => {
 						if (err) {
 							return console.error(err.message);
 						}
-						console.log('Row inserted:' + results.affectedRows);
-						output["status"]=1;
 						output["message"]="Category added Successfully!";
-						res.send(output);
+						return res.status(200).send(output);
 					});
 				}
 			});
 		});
 	} else {
-		output["status"]=0;
-		output["message"]="Please enter Category-Name";
-		res.send(output);
+		output["message"]="Please enter category name";
+		return res.status(400).send(output);
 	}
 });
 
@@ -165,30 +162,30 @@ router.get('/getCategoryDetails/:category_id', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 		if (req.params.category_id !=0) {
-		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-					rental_price, original_price,count_inv, image
-					from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image where c_id in (${req.params.category_id})`,
-			(err, result)=>{
-				if (err) {
-					console.log("---"+ err);
-					response.status(500).send(err);
-				};
-				if(result.length != 0 ){
+			conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
+				rental_price, original_price,count_inv, image
+				from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+				pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image where c_id in (${req.params.category_id})`,
+				(err, result)=>{
+					if (err) {
+						console.log("---"+ err);
+						response.status(500).send(err);
+					};
+					if(result.length != 0 ){
 
-					for (let key in result) {
-						let value = result[key];
+						for (let key in result) {
+							let value = result[key];
 
-						var buffer = Buffer.from(value.image, 'base64');
-						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
-					}
-					res.status(200).send(result);
-				}else {
-					output["status"]=0;
-					output["message"]="No Records Found!";
-					res.status(400).send(output);
-				}		
-			});
+							var buffer = Buffer.from(value.image, 'base64');
+							result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+						}
+						res.status(200).send(result);
+					}else {
+						output["status"]=0;
+						output["message"]="No Records Found!";
+						res.status(400).send(output);
+					}		
+				});
 		}
 	});
 });
@@ -199,35 +196,35 @@ router.get('/getPatternDetails/:pattern_id', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 		if (req.params.pattern_id !=0) {
-		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-					rental_price, original_price,count_inv, image
-					from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image
-					where c_id in (select c_id from pattern natural join category where p_id in (${req.params.pattern_id}))`,
-			(err, result)=>{
-				if (err) {
-					console.log("---"+ err);
-					response.status(500).send(err);
-				};
-				if(result.length != 0 ){
+			conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
+				rental_price, original_price,count_inv, image
+				from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+				pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image
+				where c_id in (select c_id from pattern natural join category where p_id in (${req.params.pattern_id}))`,
+				(err, result)=>{
+					if (err) {
+						console.log("---"+ err);
+						response.status(500).send(err);
+					};
+					if(result.length != 0 ){
 
-					for (let key in result) {
-						let value = result[key];
+						for (let key in result) {
+							let value = result[key];
 
-						var buffer = Buffer.from(value.image, 'base64');
-						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
-					}
-					res.status(200).send(result);
-				}else {
-					output["status"]=0;
-					output["message"]="No Records Found!";
-					res.status(400).send(output);
-				}		
-			});
+							var buffer = Buffer.from(value.image, 'base64');
+							result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+						}
+						res.status(200).send(result);
+					}else {
+						output["status"]=0;
+						output["message"]="No Records Found!";
+						res.status(400).send(output);
+					}		
+				});
 		}
 	});
 });
-	
+
 
 
 
@@ -235,31 +232,31 @@ router.get('/getClothDetails/:clothmaterial_id', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 		if (req.params.clothmaterial_id !=0) {
-		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-					rental_price, original_price,count_inv, image
-					from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image 
-					 where cloth_id=${req.params.clothmaterial_id}`,
-			(err, result)=>{
-				if (err) {
-					console.log("---"+ err);
-					response.status(500).send(err);
-				};
-				if(result.length != 0 ){
+			conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
+				rental_price, original_price,count_inv, image
+				from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+				pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image 
+				where cloth_id=${req.params.clothmaterial_id}`,
+				(err, result)=>{
+					if (err) {
+						console.log("---"+ err);
+						response.status(500).send(err);
+					};
+					if(result.length != 0 ){
 
-					for (let key in result) {
-						let value = result[key];
+						for (let key in result) {
+							let value = result[key];
 
-						var buffer = Buffer.from(value.image, 'base64');
-						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
-					}
-					res.status(200).send(result);
-				}else {
-					output["status"]=0;
-					output["message"]="No Records Found!";
-					res.status(400).send(output);
-				}		
-			});
+							var buffer = Buffer.from(value.image, 'base64');
+							result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+						}
+						res.status(200).send(result);
+					}else {
+						output["status"]=0;
+						output["message"]="No Records Found!";
+						res.status(400).send(output);
+					}		
+				});
 		}
 	});
 });
@@ -269,31 +266,31 @@ router.get('/getColorDetails/:c_id', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 		if (req.params.c_id !=0) {
-		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-					rental_price, original_price,count_inv, image
-					from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image 
-					 where color_id=${req.params.c_id}`,
-			(err, result)=>{
-				if (err) {
-					console.log("---"+ err);
-					response.status(500).send(err);
-				};
-				if(result.length != 0 ){
+			conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
+				rental_price, original_price,count_inv, image
+				from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+				pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image 
+				where color_id=${req.params.c_id}`,
+				(err, result)=>{
+					if (err) {
+						console.log("---"+ err);
+						response.status(500).send(err);
+					};
+					if(result.length != 0 ){
 
-					for (let key in result) {
-						let value = result[key];
+						for (let key in result) {
+							let value = result[key];
 
-						var buffer = Buffer.from(value.image, 'base64');
-						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
-					}
-					res.status(200).send(result);
-				}else {
-					output["status"]=0;
-					output["message"]="No Records Found!";
-					res.status(400).send(output);
-				}		
-			});
+							var buffer = Buffer.from(value.image, 'base64');
+							result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+						}
+						res.status(200).send(result);
+					}else {
+						output["status"]=0;
+						output["message"]="No Records Found!";
+						res.status(400).send(output);
+					}		
+				});
 		}
 	});
 });
@@ -303,30 +300,30 @@ router.get('/getSizeDetails/:size_id', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 		if (req.params.size_id !=0) {
-		conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-					rental_price, original_price,count_inv, image
-					from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-					pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image where s_id=${req.params.size_id}`,
-			(err, result)=>{
-				if (err) {
-					console.log("---"+ err);
-					response.status(500).send(err);
-				};
-				if(result.length != 0 ){
+			conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
+				rental_price, original_price,count_inv, image
+				from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
+				pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image where s_id=${req.params.size_id}`,
+				(err, result)=>{
+					if (err) {
+						console.log("---"+ err);
+						response.status(500).send(err);
+					};
+					if(result.length != 0 ){
 
-					for (let key in result) {
-						let value = result[key];
+						for (let key in result) {
+							let value = result[key];
 
-						var buffer = Buffer.from(value.image, 'base64');
-						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
-					}
-					res.status(200).send(result);
-				}else {
-					output["status"]=0;
-					output["message"]="No Records Found!";
-					res.status(400).send(output);
-				}		
-			});
+							var buffer = Buffer.from(value.image, 'base64');
+							result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();
+						}
+						res.status(200).send(result);
+					}else {
+						output["status"]=0;
+						output["message"]="No Records Found!";
+						res.status(400).send(output);
+					}		
+				});
 		}
 	});
 });
