@@ -240,6 +240,38 @@ router.get('/getLaundryDetails', (req, res) =>{
 });
 
 
+router.get('/getOrderDetails', (req, res) =>{
+	req.getConnection((error, conn) =>{
+		let output={};
+
+		let sql=`select u_name,order_id,item_name,count_inv,rent_date,return_date,phone,rental_price,advance_amount,image 
+		from inventory natural join order_details natural join suborder_details natural join user_details natural join image`;
+		conn.query(sql,true,(error, result, fields) => {
+			if (error) {
+				console.log("---"+ err);
+				response.status(500).send(err);
+			};
+			if(result.length != 0 ){
+
+				for (let key in result) {
+					let value = result[key];
+
+				    var buffer = Buffer.from(value.image, 'base64');
+					result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();				
+				}
+
+				res.status(200).send(result);
+
+			}
+			else {
+				output["status"]=0;
+				output["message"]="No Records Found!";
+				res.status(400).send(output);
+			} 
+
+		});
+	});
+});
 
 /*router.get('/getLaundryDetails', (req, res) =>{
 	req.getConnection((error, conn) =>{

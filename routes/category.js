@@ -6,7 +6,7 @@ router.post('/create', function(req, res){
 	let output={};
 	let categoryName = req.body.categoryName;
 	console.log(req.body)
-	if(categoryName){
+	if(categoryName != ''){
 		req.getConnection((error, conn) =>{
 			conn.query(query, categoryName,(err,rows) => {
 				if(err) { return res.status(500).send(err); }
@@ -37,7 +37,7 @@ router.post('/createCloth', function(req, res){
 	let output={};
 	let clothName = req.body.clothName;
 	console.log(req.body)
-	if(clothName){
+	if(clothName != ''){
 		req.getConnection((error, conn) =>{
 			conn.query(query, clothName,(err,rows) => {
 				if(err) { return res.status(500).send(err); }
@@ -72,7 +72,7 @@ router.post('/createPattern', function(req, res){
 		c_id: req.body.categoryId
 	}
 	console.log(req.body)
-	if(addpattern){
+	if(addpattern.p_name != ''){
 		req.getConnection((error, conn) =>{
 			conn.query(query,[addpattern.p_name,addpattern.c_id],(err,rows) => {
 				if(err) { return res.status(500).send(err); }
