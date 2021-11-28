@@ -15,9 +15,9 @@ router.post('/create', function(req, res){
 					return res.status(400).send(output);
 				} else {
 					let stmt = `INSERT INTO category SET ?`;
-					conn.query(stmt, {c_name: categoryName}, (err, results, fields) => {
-						if (err) {
-							return console.error(err.message);
+					conn.query(stmt, {c_name: categoryName}, (err1, results, fields) => {
+						if (err1) {
+							return res.status(500).send(err1);
 						}
 						output["message"]="Category added Successfully!";
 						return res.status(200).send(output);

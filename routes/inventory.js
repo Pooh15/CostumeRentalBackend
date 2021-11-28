@@ -175,58 +175,25 @@ router.get('/getLaundryDetails', (req, res) =>{
 	});
 });
 
-router.get('/getLaundryDetails', (req, res) =>{
+
+router.get('/getWishList/:items', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
-
-		let sql=`call get_laundry_details()`;
-		conn.query(sql,true,(error, result, fields) => {
+		console.log(req.params.items);
+		let sql=`call order_wishlist(?)`;
+		conn.query(sql, req.params.items, (error, result, fields) => {
 			if (error) {
-				console.log("---"+ err);
-				response.status(500).send(err);
+				console.log("---"+ error);
+				res.status(500).send(error);
 			};
 			if(result.length != 0 ){
-
-				for (let key in result) {
-					let value = result[key];
-
-					var buffer = Buffer.from(JSON.stringify(value.image));
-					result[key].image = `data:image/png;base64,`+Buffer.from(JSON.stringify(value.image));					
+				let orderResult = Object.values(JSON.parse(JSON.stringify(result[0])))
+				for (let key in orderResult) {
+					let buffer = Buffer.from(orderResult[key].image, 'base64');
+					result[0][key].image = `data:image/png;base64,`+Buffer.from(orderResult[key].image).toString();
 				}
-
 				res.status(200).send(result);
-			}
-			else {
-				output["status"]=0;
-				output["message"]="No Records Found!";
-				res.status(400).send(output);
-			} 
-
-		});
-	});
-});
-
-
-router.get('/getLaundryDetails', (req, res) =>{
-	req.getConnection((error, conn) =>{
-		let output={};
-
-		let sql=`call get_laundry_details()`;
-		conn.query(sql,true,(error, result, fields) => {
-			if (error) {
-				console.log("---"+ err);
-				response.status(500).send(err);
-			};
-			if(result.length != 0 ){
-
-				for (let key in result) {
-					let value = result[key];
-
-					var buffer = Buffer.from(JSON.stringify(value.image));
-					result[key].image = `data:image/png;base64,`+Buffer.from(JSON.stringify(value.image));					
-				}
-
-				res.status(200).send(result);
+				return;
 
 			}
 			else {
@@ -272,39 +239,5 @@ router.get('/getOrderDetails', (req, res) =>{
 		});
 	});
 });
-
-/*router.get('/getLaundryDetails', (req, res) =>{
-	req.getConnection((error, conn) =>{
-		let output={};
-
-				conn.query(`select item_name,rental_price,laundry_count,DATE_ADD(laundry_in_date, INTERVAL 2 DAY) as item_available_On,image from 
-				laundry natural join inventory natural join rental_price NATURAL join image where count_inv='0' and laundry_out_date is NULL`,
-				(err, result)=>{
-
-				if (err) {
-					console.log("---"+ err);
-					response.status(500).send(err);
-				};
-
-				if(result.length != 0 ){
-
-					for (let key in result) {
-						let value = result[key];
-
-						var buffer = Buffer.from(value.image, 'base64');
-						result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();						
-						console.log("Item is under laundry");
-						var inlaundry = true;
-					}
-							res.status(200).send(result);	
-				}else {
-					output["status"]=0;
-					output["message"]="No Records Found!";
-					res.status(400).send(output);
-				}
-			});
-		
-	});
-});*/
 
 module.exports = router;	
