@@ -269,6 +269,29 @@ router.post('/postReturnOrder', function(req, res){
 });
 
 
+router.post('/searchKeyword', function(req, res){
+	let query = `call search_keyword('?')`;
+	let output={};
+	let keyword = req.body.key;
+
+	console.log(req.body.keyword)
+	if(keyword != '0'){
+		req.getConnection((error, conn) =>{
+			conn.query(query,[keyword.key],(err,rows) => {
+				if(err) { return res.status(500).send(err); }
+				if(rows.length != 0){
+					output["message"]="Search Successful";
+					return res.status(200).send(output);
+				} 
+			else {
+			output["message"]="Keyword not found";
+		return res.status(400).send(output);
+		}
+		});
+	});
+}
+
+});
 
 
 module.exports = router;	
