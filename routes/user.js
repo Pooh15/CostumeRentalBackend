@@ -33,4 +33,24 @@ router.get('/orderDetails/:id', (req, res) =>{
 	});
 });
 
+router.post('/placeOrder', function(request, response) {
+	request.getConnection((error, conn) =>{
+		let output={};
+		console.log(request.body);
+		let sql=`call place_order(?)`;
+		conn.query(sql, JSON.stringify(request.body), (error, results, fields) => {
+		if (error) {
+				console.log("---"+ error);
+				response.status(500).send(error);
+				return;
+		} else {
+			console.log('Order Placed:' + results.affectedRows);
+			output["message"]="Order Placed Success!";
+			return response.status(200).send(output);
+		}
+			
+		})			
+	})
+})
+
 module.exports = router;	
