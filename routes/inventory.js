@@ -207,11 +207,11 @@ router.get('/getWishList/:items', (req, res) =>{
 });
 
 
-router.get('/getOrderDetails', (req, res) =>{
+router.get('/getAdminOrderDetails', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 
-		let sql=`select u_name,order_id,item_name,count_inv,rent_date,return_date,phone,rental_price,advance_amount,image 
+		let sql=`select u_name,order_id,item_id,item_name,order_count,return_count,rent_date,return_date,phone,rental_price,advance_amount,image 
 		from inventory natural join order_details natural join suborder_details natural join user_details natural join image`;
 		conn.query(sql,true,(error, result, fields) => {
 			if (error) {
@@ -239,5 +239,36 @@ router.get('/getOrderDetails', (req, res) =>{
 		});
 	});
 });
+
+router.post('/postReturnOrder', function(req, res){
+	let query = `call update_orderandsuborder(?,?,?)`;
+	let output={};
+	let returnOrder =
+	{
+		o_id: req.body.order_id,	
+		i_id: req.body.item_id,
+		rc: req.body.actual_return_count
+	}
+	console.log(req.body)
+	if(returnOrder != '0'){
+		req.getConnection((error, conn) =>{
+			conn.query(query,[returnOrder.o_id,returnOrder.i_id,returnOrder.rc],(err,rows) => {
+				if(err) { return res.status(500).send(err); }
+				if(rows.length != 0){
+					output["message"]="Item is added to laundry!";
+					return res.status(200).send(output);
+				} 
+			else {
+			output["message"]="Please enter All fields";
+		return res.status(400).send(output);
+		}
+		});
+	});
+}
+
+});
+
+
+
 
 module.exports = router;	
