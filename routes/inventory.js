@@ -93,10 +93,8 @@ router.get('/getDetails', (req, res) =>{
 				if (err) {
 					res.status(500).send(err);
 				}
-
 				if(result.length != 0 )
 				{
-
 					for (let key in result) {
 						let value = result[key];
 
@@ -109,9 +107,10 @@ router.get('/getDetails', (req, res) =>{
 						if (error) {
 							if (error) res.status(500).send(error);				
 						} 
+						let result1 = Object.values(JSON.parse(JSON.stringify(result)));
+						
 						if(results.length != 0){
-							let result1 = Object.values(JSON.parse(JSON.stringify(result)));
-							const results1 = Object.values(JSON.parse(JSON.stringify(results)));
+						const results1 = Object.values(JSON.parse(JSON.stringify(results)));
 
 						//add order_count to the items in inventory that matches with
 						//items in order
@@ -132,7 +131,14 @@ router.get('/getDetails', (req, res) =>{
 
 						res.status(200).send(result1);
 					} else { //No order is placed yet
-						res.status(200).send(result);
+						result1.forEach((element, index) => {
+
+							if(result1[index].Laundry_count != null){
+								result1[index].expected_laundry_out_date = 
+								calculateDate(result1[index].laundry_in_date, 4);	
+							}
+						})
+						res.status(200).send(result1);
 					}	
 				});
 
