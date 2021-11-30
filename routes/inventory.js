@@ -82,7 +82,7 @@ router.get('/getDetails', (req, res) =>{
 		let output={};
 
 		conn.query(`select i.item_id,item_name,c_name,material_name,p_name,color,s_name,
-			image_name, rental_price, original_price, Laundry_count ,laundry_in_date, 
+			image_name, rental_price, original_price, Laundry_count, count_inv,laundry_in_date, 
 			advance_amount, image 
 			from inventory i NATURAL JOIN category natural join clothmaterial NATURAL JOIN
 			pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image
@@ -229,7 +229,7 @@ router.get('/getAdminOrderDetails', (req, res) =>{
 				for (let key in result) {
 					let value = result[key];
 
-				    var buffer = Buffer.from(value.image, 'base64');
+					var buffer = Buffer.from(value.image, 'base64');
 					result[key].image = `data:image/png;base64,`+Buffer.from(value.image).toString();				
 				}
 
@@ -255,22 +255,21 @@ router.post('/postReturnOrder', function(req, res){
 		i_id: req.body.item_id,
 		rc: req.body.actual_return_count
 	}
-	console.log(req.body)
-	if(returnOrder != '0'){
-		req.getConnection((error, conn) =>{
-			conn.query(query,[returnOrder.o_id,returnOrder.i_id,returnOrder.rc],(err,rows) => {
-				if(err) { return res.status(500).send(err); }
-				if(rows.length != 0){
-					output["message"]="Item is added to laundry!";
-					return res.status(200).send(output);
-				} 
+	req.getConnection((error, conn) =>{
+		conn.query(query,[returnOrder.o_id,returnOrder.i_id,returnOrder.rc],(err,rows) => {
+			if(err) { return res.status(500).send(err); }
+			if(rows.length != 0){
+				console.log("Success");
+				output["message"]="Item is added to laundry!";
+				return res.status(200).send(output);
+			} 
 			else {
-			output["message"]="Please enter All fields";
-		return res.status(400).send(output);
-		}
+				console.log("error")
+				output["message"]="Please enter All fields";
+				return res.status(400).send(output);
+			}
 		});
 	});
-}
 
 });
 
@@ -290,17 +289,17 @@ router.post('/searchKeyword', function(req, res){
 				console.log(result);
 				if(result.length != 0)
 				{
-				  output["message"]="Search Successful";
+					output["message"]="Search Successful";
 					return res.status(200).send(result[0]);
 				} 
 				else 
 				{
-				output["message"]="Keyword not found";
-				return res.status(400).send(output);
+					output["message"]="Keyword not found";
+					return res.status(400).send(output);
 				}
+			});
 		});
-	});
-}
+	}
 
 });
 
