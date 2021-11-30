@@ -230,9 +230,9 @@ router.get('/getCategoryDetails/:category_id', (req, res) =>{
 		let output={};
 		if (req.params.category_id !=0) {
 			conn.query(`select item_id,item_name,c_name,material_name,p_name,color,s_name,
-				rental_price, original_price,count_inv, image
+				rental_price, original_price,count_inv,laundry_in_date,laundry_out_date,image
 				from inventory NATURAL JOIN category natural join clothmaterial NATURAL JOIN
-				pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image where c_id in (${req.params.category_id})`,
+				pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image natural join laundry where c_id in (${req.params.category_id})`,
 				(err, result)=>{
 					if (err) {
 						console.log("---"+ err);
