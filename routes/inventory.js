@@ -283,7 +283,7 @@ router.post('/searchKeyword', function(req, res){
 	console.log(keyword);
 	if(keyword != '0'){
 		req.getConnection((error, conn) =>{
-			conn.query(query,[keyword.key],(err,result,fields) => {
+			conn.query(query, keyword, (err,result,fields) => {
 				if(err) { 
 					return res.status(500).send(err);
 				}
@@ -291,7 +291,7 @@ router.post('/searchKeyword', function(req, res){
 				if(result.length != 0)
 				{
 				  output["message"]="Search Successful";
-					return res.status(200).send(output);
+					return res.status(200).send(result[0]);
 				} 
 				else 
 				{
