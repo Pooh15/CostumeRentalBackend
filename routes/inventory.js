@@ -217,8 +217,8 @@ router.get('/getAdminOrderDetails', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 
-		let sql=`select u_name,order_id,item_id,item_name,order_count,return_count,rent_date,return_date,phone,rental_price,advance_amount,image 
-		from inventory natural join order_details natural join suborder_details natural join user_details natural join image`;
+		let sql=`select u_name,order_id,item_id,item_name,order_count,return_count,rent_date,return_date,phone,rental_price,advance_amount,laundry_out_date,image 
+		from inventory natural join order_details natural join suborder_details natural join user_details natural join laundry natural join image`;
 		conn.query(sql,true,(error, result, fields) => {
 			if (error) {
 				console.log("---"+ err);
@@ -276,7 +276,7 @@ router.post('/postReturnOrder', function(req, res){
 
 
 router.post('/searchKeyword', function(req, res){
-	let query = `call search_keyword(?)`;
+	let query = `call search_keyword(?,?)`;
 	let output={};
 	let keyword = req.body.key;
 
@@ -298,6 +298,34 @@ router.post('/searchKeyword', function(req, res){
 				output["message"]="Keyword not found";
 				return res.status(400).send(output);
 				}
+		});
+	});
+}
+
+});
+
+router.post('/postRemoveLaundry', function(req, res){
+	let query = `update laundry SET laundry_out_date=CURRENT_DATE where item_id=? and order_id=?`;
+	let output={};
+	let removeLaundry =
+	{
+		i_id: req.body.item_id,
+		o_id: req.body.order_id
+	}
+	console.log(req.body)
+	if(removeLaundry != '0'){
+		req.getConnection((error, conn) =>{
+			conn.query(query,[removeLaundry.i_id,removeLaundry.o_id],(err,rows) => {
+				if(err) { return res.status(500).send(err); }
+				//console.log(result);
+				if(rows.length != 0){
+					output["message"]="Item is added to Inventory!";
+					return res.status(200).send(output);
+				} 
+			else {
+			output["message"]="Please enter All fields";
+		return res.status(400).send(output);
+		}
 		});
 	});
 }
