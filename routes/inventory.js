@@ -83,11 +83,11 @@ router.get('/getDetails', (req, res) =>{
 
 		conn.query(`select i.item_id,item_name,c_name,material_name,p_name,color,s_name,
 			image_name, rental_price, original_price, Laundry_count, count_inv,laundry_in_date, 
-			advance_amount, image 
+			advance_amount,laundry_out_date, image 
 			from inventory i NATURAL JOIN category natural join clothmaterial NATURAL JOIN
 			pattern NATURAL JOIN color NATURAL JOIN size NATURAL JOIN image
 			left join laundry l on l.item_id = i.item_id 
-			where l.laundry_out_date is null
+			
 			`,
 			(err, result)=>{
 				if (err) {
@@ -217,13 +217,14 @@ router.get('/getAdminOrderDetails', (req, res) =>{
 	req.getConnection((error, conn) =>{
 		let output={};
 
-		let sql=`select u_name,order_id,item_id,item_name,order_count,return_count,rent_date,return_date,phone,rental_price,advance_amount,laundry_out_date,image 
-		from inventory natural join order_details natural join suborder_details natural join user_details natural join laundry natural join image`;
+		let sql=`select u_name,order_id,item_id,item_name,order_count,return_count,rent_date,return_date,phone,rental_price,advance_amount,image 
+		from inventory natural join order_details natural join suborder_details natural join user_details natural join image`;
 		conn.query(sql,true,(error, result, fields) => {
 			if (error) {
 				console.log("---"+ err);
-				response.status(500).send(err);
+				res.status(500).send(err);
 			};
+			console.log(result);
 			if(result.length != 0 ){
 
 				for (let key in result) {
@@ -275,7 +276,7 @@ router.post('/postReturnOrder', function(req, res){
 
 
 router.post('/searchKeyword', function(req, res){
-	let query = `call search_keyword(?,?)`;
+	let query = `call search_keyword(?)`;
 	let output={};
 	let keyword = req.body.key;
 
